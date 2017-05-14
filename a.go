@@ -42,19 +42,20 @@ func main() {
 	taskquit := make(chan bool)
 	workerquit := make(chan bool)
 
-	// go func() {
-	// loop:
-	// 	for {
-	// 		select {
-	// 		case <-taskquit:
-	// 			workerquit <- true
-	// 			break loop
-	// 		case job := <-task:
-	// 			_ = job
-	// 			// fmt.Println(job)
-	// 		}
-	// 	}
-	// }()
+	slice := []string{}
+
+	go func() {
+	loop:
+		for {
+			select {
+			case <-taskquit:
+				workerquit <- true
+				break loop
+			case job := <-task:
+				slice = append(slice, job)
+			}
+		}
+	}()
 
 	go func() {
 		for _, repo := range repos {
@@ -71,7 +72,7 @@ func main() {
 		}
 		for _, repo := range repos {
 			fmt.Print(aec.EraseLine(2))
-			if false {
+			if stringInSlice(repo, slice) {
 				fmt.Println("✔", "donwloaded", repo)
 			} else {
 				fmt.Println(spinners[c], "donwloading", repo)
@@ -82,4 +83,13 @@ func main() {
 	}
 
 	<-workerquit
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
